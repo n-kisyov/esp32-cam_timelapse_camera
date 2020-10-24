@@ -26,13 +26,13 @@ uint16_t nextImageNumber = 0;
 
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println();
   Serial.println("Booting...");
 
-  pinMode(4, INPUT);              //GPIO for LED flash
+  pinMode(4, INPUT);              //LED flash (also CS on SPI interface)
   digitalWrite(4, LOW);
-  rtc_gpio_hold_dis(GPIO_NUM_4);  //diable pin hold if it was enabled before sleeping
+  rtc_gpio_hold_dis(GPIO_NUM_4);
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -107,7 +107,7 @@ void setup()
     while (1);  //wait here as something is not right
   }
 
-  /*ERASE EEPROM BYTES START*/
+  //uncomment below to erase EEPROM
   /*
     Serial.println("Erasing EEPROM...");
     for(int i = 0; i < EEPROM_SIZE; i++)
@@ -119,16 +119,15 @@ void setup()
     Serial.println("Erased");
     while(1);
   */
-  /*ERASE EEPROM BYTES END*/
 
-  if (EEPROM.read(ID_ADDRESS) != ID_BYTE)   //there will not be a valid picture number
+  if (EEPROM.read(ID_ADDRESS) != ID_BYTE)
   {
     Serial.println("Initializing ID byte & restarting picture count");
     nextImageNumber = 0;
     EEPROM.write(ID_ADDRESS, ID_BYTE);
     EEPROM.commit();
   }
-  else                                      //obtain next picture number
+  else
   {
     EEPROM.get(COUNT_ADDRESS, nextImageNumber);
     nextImageNumber +=  1;
@@ -173,9 +172,9 @@ void setup()
   esp_camera_fb_return(fb);
   Serial.printf("Image saved: %s\n", path.c_str());
 
-  pinMode(4, OUTPUT);              //GPIO for LED flash
-  digitalWrite(4, LOW);            //turn OFF flash LED
-  rtc_gpio_hold_en(GPIO_NUM_4);    //make sure flash is held LOW in sleep
+  pinMode(4, OUTPUT);
+  digitalWrite(4, LOW);
+  rtc_gpio_hold_en(GPIO_NUM_4);
   delay(500);
   Serial.println("Entering deep sleep mode");
   Serial.flush();
